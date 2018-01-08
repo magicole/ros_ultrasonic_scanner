@@ -25,6 +25,7 @@ sensor_msgs::LaserScan generate_scan(vector<string> data){
     sensor2_dist = stof(data[2]);
   }catch(const exception& e){
     cout << "Exception Thrown: " << e.what() << endl;
+    cout << "data[0] is: " << data[0] << endl;
   }
 	ros::Time scan_time = ros::Time::now();
 	sensor_msgs::LaserScan scan;
@@ -68,14 +69,20 @@ int main(int argc, char** argv){
   string data;
 
   while(ros::ok()){
-    if(my_serial.available() > 13){
-      //cout << "I have stuff: " << endl;
-      data = my_serial.readline();
-      vector<string> tokens = string_split(data, ',');
-      //cout << "I got " << tokens.size() << " items from splitting" << endl;
-      if(tokens.size() == 3){
-        scan_publisher.publish(generate_scan(tokens));
+    try{
+      if(my_serial.available() > 13){
+        //cout << "I have stuff: " << endl;
+        data = my_serial.readline();
+        vector<string> tokens = string_split(data, ',');
+        //cout << "I got " << tokens.size() << " items from splitting" << endl;
+        if(tokens.size() == 3){
+          scan_publisher.publish(generate_scan(tokens));
+        }
       }
+    }catch(const exception& e){
+      ROS_ERROR("Got exception: %s", e.what());
+      ROS_ERROR("Exiting Node");
+      return 0;
     }
     ros::spinOnce();
     loop_rate.sleep();
